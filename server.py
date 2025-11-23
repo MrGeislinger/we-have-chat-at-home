@@ -1,17 +1,18 @@
 import socket
 import threading
 import datetime
+import json
 
 # Server Configuration
-HOST = '0.0.0.0'
-PORT = 5555
-MAX_CLIENTS = 12
+HOST: str = '0.0.0.0'
+PORT: int = 5556
+MAX_CLIENTS: int = 12
 
 # List to keep track of connected clients
-clients = []
-nicknames = []
+clients: list[socket.socket] = []
+nicknames: list[str] = []
 
-def broadcast(message, sender_socket=None):
+def broadcast(message, sender_socket: socket.socket = None) -> None:
     """
     Sends a message to all connected clients.
     """
@@ -24,7 +25,7 @@ def broadcast(message, sender_socket=None):
             # If sending fails, remove the client
             remove_client(client)
 
-def remove_client(client):
+def remove_client(client: socket.socket) -> None:
     """
     Removes a client from the lists and closes the connection.
     """
@@ -34,28 +35,36 @@ def remove_client(client):
         client.close()
         nickname = nicknames[index]
         nicknames.remove(nickname)
-        broadcast(f'{nickname} left the chat!'.encode('utf-8'))
+        
+        timestamp = datetime.datetime.now().strftime('%H:%M:%S')
+        msg = json.dumps({
+            "type": "system",
+            "content": f"{nickname} left the chat!",
+            "timestamp": timestamp
+        })
+        broadcast(msg.encode('utf-8'))
         print(f"Client {nickname} disconnected.")
 
-def handle_client(client):
+def handle_client(client: socket.socket) -> None:
     """
     Handles a single client connection.
     """
     while True:
         try:
             # Receive message from client
+            # Client sends JSON bytes now
             message = client.recv(1024)
             if not message:
                 remove_client(client)
                 break
             
-            # Broadcast message
+            # Broadcast message (it's already JSON bytes from client)
             broadcast(message)
         except:
             remove_client(client)
             break
 
-def receive():
+def receive() -> None:
     """
     Main loop to accept new connections.
     """
@@ -83,8 +92,21 @@ def receive():
             clients.append(client)
 
             print(f"Nickname of the client is {nickname}")
-            broadcast(f"{nickname} joined the chat!".encode('utf-8'))
-            client.send('Connected to the server!'.encode('utf-8'))
+            
+            timestamp = datetime.datetime.now().strftime('%H:%M:%S')
+            join_msg = json.dumps({
+                "type": "system",
+                "content": f"{nickname} joined the chat!",
+                "timestamp": timestamp
+            })
+            broadcast(join_msg.encode('utf-8'))
+            
+            welcome_msg = json.dumps({
+                "type": "system",
+                "content": "Connected to the server!",
+                "timestamp": timestamp
+            })
+            client.send(welcome_msg.encode('utf-8'))
 
             # Start handling thread for client
             thread = threading.Thread(target=handle_client, args=(client,))

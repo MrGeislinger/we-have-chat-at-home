@@ -2,6 +2,7 @@ import socket
 import threading
 import sys
 import datetime
+import json
 import os
 
 def receive_messages(client_socket, speak: bool = False):
@@ -14,29 +15,48 @@ def receive_messages(client_socket, speak: bool = False):
             if message == 'NICK':
                 client_socket.send(nickname.encode('utf-8'))
             else:
-                # Always print the message
-                print(message)
-                if speak:
-                    os.system(f"say  \"{message}\"")
+                try:
+                    data = json.loads(message)
+                    timestamp = data.get('timestamp', '')
+                    content = data.get('content', '')
+                    
+                    if data.get('type') == 'message':
+                        sender = data.get('sender', 'Unknown')
+                        print(f"[{timestamp}] {sender}: {content}")
+                        if speak:
+                            os.system(f"say  \"{content}\"")
+                    elif data.get('type') == 'system':
+                        print(f"[{timestamp}] [System]: {content}")
+                    else:
+                        print(message)
+                except json.JSONDecodeError:
+                    # Fallback for non-JSON messages (shouldn't happen with new server)
+                    print(message)
         except:
             print("An error occurred! Disconnecting...")
             client_socket.close()
             break
 
-def write_messages(client_socket):
+def write_messages(client_socket: socket.socket):
     """
     Reads input from the user and sends it to the server.
     """
     while True:
         try:
-            text = input('> ')
+            text = input('')
             if text.lower() == '/quit':
                 client_socket.close()
                 sys.exit()
             
             # Add timestamp and nickname
             timestamp = datetime.datetime.now().strftime('%H:%M:%S')
-            message = f"[{timestamp}] {nickname}: {text}"
+            message_dict = {
+                "type": "message",
+                "sender": nickname,
+                "content": text,
+                "timestamp": timestamp
+            }
+            message = json.dumps(message_dict)
             client_socket.send(message.encode('utf-8'))
         except:
             print("Error sending message.")
@@ -52,7 +72,7 @@ if __name__ == "__main__":
         case _:
             print("Usage: python3 client.py <Server IP> <Port>")
             sys.exit(1)
-    
+
     port = int(port)
 
     nickname = input("Choose your nickname: ")
@@ -65,9 +85,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # Start threads for listening and writing
-    receive_thread = threading.Thread(
-        target=receive_messages, args=(client, speak)
-    )
+    receive_thread = threading.Thread(target=receive_messages, args=(client, speak))
     receive_thread.start()
 
     write_thread = threading.Thread(target=write_messages, args=(client,))
