@@ -1,37 +1,9 @@
 # Local Chat Server
 
-I have implemented a simple, robust local chat server and client using Python's standard `socket` and `threading` libraries.
+A simple local chat server and client using Python's standard `socket` and 
+`threading` libraries.
 
-## Features
-
-### Server
-- Listens on `0.0.0.0:5555`.
-- Handles multiple clients using threads.
-- Broadcasts messages as JSON objects.
-- Manages nicknames and disconnections.
-
-### Client
-- Connects to the server.
-- Uses two threads: one for listening to incoming messages and one for sending user input.
-- Sends and receives messages as JSON objects.
-- Uses `rich` to color-code usernames and highlight system messages.
-- **TTS Feature:** If run with `say` argument (e.g., `python3 client.py <IP> 5555 say`), it reads messages aloud.
-  - Only reads messages from other users.
-  - **Configurable Settings:** Use the `/speak` command to pass any flags to the system `say` command.
-    - `/speak -v Alex` (Set voice to Alex)
-    - `/speak -r 200` (Set rate to 200 words/min)
-    - `/speak -v Samantha -r 180` (Set both)
-    - `/speak -v=Fred` (Alternative syntax)
-    - `/speak v=Fred` (Alternative syntax)
-    - `/speak v Fred` (Alternative syntax)
-    - `/speak voice Fred` (Alternative syntax)
-  - **Removing Settings:** Use `key=` (empty value), `key=""`, or `key=''` to remove a setting.
-    - `/speak -v=` (Removes voice setting)
-    - `/speak -r ""` (Removes rate setting)
-    - `/speak -r ''` (Removes rate setting)
-- Supports a `/quit` command to exit gracefully.
-
-## How to Run
+## Quickstart
 
 1. **Install Dependencies:**
    ```bash
@@ -42,16 +14,64 @@ I have implemented a simple, robust local chat server and client using Python's 
    ```bash
    python3 server.py
    ```
-   *Note the IP address of this machine (e.g., using `ifconfig` or `ip a`).*
+> Note the IP address of this machine (e.g., using `ifconfig` or `ip a`)
 
 3. **Start a Client (on Mac or Linux):**
    ```bash
-   python3 client.py <SERVER_IP> 5555 [say]
+   python3 client.py <SERVER_IP> 5555 [NICKNAME] [say]
    ```
-   *Replace `<SERVER_IP>` with the actual IP address of the server.*
-   *Add `say` at the end to enable Text-to-Speech.*
+> Replace `<SERVER_IP>` with the actual IP address of the server
+>
+> Replace `[NICKNAME]` with your desired nickname
+>
+> Add `say` at the end to enable Text-to-Speech
 
 4. **Chat:**
-   - Enter your nickname when prompted.
-   - Type messages and press Enter to send.
-   - Type `/quit` to leave.
+   - Enter your nickname (if prompted)
+   - Type messages and press Enter to send
+   - Type `/quit` to leave
+
+
+## Features
+
+### Server
+
+- Listens on `0.0.0.0:5555`
+- Handles multiple clients using threads
+- Broadcasts messages as JSON objects
+- Manages nicknames and disconnections
+
+### Client
+
+- Connects to the server
+- Uses two threads: one for listening to incoming messages and one for sending
+  user input
+- Sends and receives messages as JSON objects
+- Uses `rich` to color-code usernames and highlight system messages
+- Supports a `/quit` command to exit gracefully
+- Supports [TTS](#tts-feature) with configurable settings
+
+#### TTS Feature
+If run with `say` argument like `python3 client.py <IP> <PORT> <NICKNAME> say`,
+it reads messages aloud
+
+- Only reads messages from other users
+##### TTS Configurable Settings
+
+Use the `/speak` command to pass any flags to the system `say` command:
+
+- `/speak -v Alex` (Set voice to Alex)
+- `/speak -r 200` (Set rate to 200 words/min)
+- `/speak -v Samantha -r 180` (Set both)
+- `/speak -v=Fred` (Alternative syntax)
+- `/speak v=Fred` (Alternative syntax)
+- `/speak v Fred` (Alternative syntax)
+- `/speak voice Fred` (Alternative syntax)
+
+Use `key=` (empty value), `key=""`, or `key=''` to remove a setting:
+
+- `/speak -v=` (Removes voice setting)
+- `/speak -r ""` (Removes rate setting)
+- `/speak -r ''` (Removes rate setting)
+
+
