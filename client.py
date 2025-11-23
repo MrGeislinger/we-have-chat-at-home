@@ -4,6 +4,27 @@ import sys
 import datetime
 import json
 import os
+import random
+from rich.console import Console
+
+console = Console()
+
+COLORS = [
+    'red',
+    'cyan',
+    'magenta',
+    'green',
+    'yellow',
+    'white',
+]
+
+def get_color(username, color_list=COLORS):
+    """
+    Deterministically assigns a color to a username.
+    """
+    
+    hash_val = sum(ord(c) for c in username)
+    return color_list[hash_val % len(color_list)]
 
 def receive_messages(client_socket, speak: bool = False):
     """
@@ -22,18 +43,19 @@ def receive_messages(client_socket, speak: bool = False):
                     
                     if data.get('type') == 'message':
                         sender = data.get('sender', 'Unknown')
-                        print(f"[{timestamp}] {sender}: {content}")
+                        color = get_color(sender)
+                        console.print(f"[{timestamp}] [{color}]{sender}[/{color}]: {content}")
                         if speak:
                             os.system(f"say  \"{content}\"")
                     elif data.get('type') == 'system':
-                        print(f"[{timestamp}] [System]: {content}")
+                        console.print(f"[{timestamp}] [bold red][System][/bold red]: {content}")
                     else:
-                        print(message)
+                        console.print(message)
                 except json.JSONDecodeError:
                     # Fallback for non-JSON messages (shouldn't happen with new server)
-                    print(message)
+                    console.print(message)
         except:
-            print("An error occurred! Disconnecting...")
+            console.print("An error occurred! Disconnecting...")
             client_socket.close()
             break
 
