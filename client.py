@@ -58,7 +58,7 @@ def receive_messages(client_socket, speak_enabled: bool = False):
     while True:
         try:
             message = client_socket.recv(1024).decode("utf-8")
-            if message == "NICK":
+            if message == "<<NICK>>":
                 client_socket.send(nickname.encode("utf-8"))
             else:
                 try:
@@ -77,7 +77,7 @@ def receive_messages(client_socket, speak_enabled: bool = False):
                             speak(say_message)
                     elif data.get("type") == "system":
                         console.print(
-                            f"[{timestamp}] [bold red][System][/bold red]: {content}"
+                            f"[{timestamp}] [bold yellow][System][/bold yellow]: {content}"
                         )
                     else:
                         console.print(message)
@@ -152,17 +152,20 @@ if __name__ == "__main__":
     match sys.argv:
         case [_, host, port]:
             speak_enabled = False
-        case [_, host, port, say]:
+            nickname = input("Choose your nickname: ")
+        case [_, host, port, name]:
+            nickname = name
+            speak_enabled = False
+        case [_, host, port, name, _]:
+            nickname = name
             speak_enabled = True
         case _:
             print("Usage: python3 client.py <Server IP> <Port>")
             sys.exit(1)
 
     port = int(port)
-
-    nickname = input("Choose your nickname: ")
-
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
     try:
         client.connect((host, port))
     except Exception as e:
