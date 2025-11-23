@@ -2,6 +2,18 @@ import socket
 import threading
 import time
 import sys
+import json
+import datetime
+
+def listen_for_messages(client):
+    while True:
+        try:
+            message = client.recv(1024).decode('utf-8')
+            if not message:
+                break
+            print(f"Received: {message}")
+        except:
+            break
 
 def mock_client(name, messages):
     try:
@@ -13,13 +25,26 @@ def mock_client(name, messages):
         if msg == 'NICK':
             client.send(name.encode('utf-8'))
         
+        # Start listening thread
+        listener = threading.Thread(target=listen_for_messages, args=(client,))
+        listener.daemon = True
+        listener.start()
+        
         # Wait for connection confirmation
         time.sleep(0.5)
         
         for message in messages:
-            client.send(message.encode('utf-8'))
+            timestamp = datetime.datetime.now().strftime('%H:%M:%S')
+            msg_dict = {
+                "type": "message",
+                "sender": name,
+                "content": message,
+                "timestamp": timestamp
+            }
+            client.send(json.dumps(msg_dict).encode('utf-8'))
             time.sleep(0.1)
             
+        time.sleep(1) # Wait for messages to be received
         client.close()
     except Exception as e:
         print(f"Client {name} error: {e}")
