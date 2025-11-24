@@ -1,4 +1,4 @@
-# We Have Chat at Home (`whaca`) — A Local Chat Server & Client
+# We Have Chat at Home — A Local Chat Server & Client
 
 A simple local chat server and client using Python's standard `socket` and 
 `threading` libraries.
